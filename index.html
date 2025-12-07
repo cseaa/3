@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Choice - Premium Chocolates & Gifts</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Theme Configuration */
+        :root {
+            --color-bg: #003B2B;
+            --color-bg-light: #004D3A;
+            --color-primary: #FFC857;
+            --color-accent: #C1292E;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--color-bg);
+            color: white;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+        /* Scrollbar Hiding */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Utilities */
+        .text-primary { color: var(--color-primary); }
+        .bg-primary { background-color: var(--color-primary); }
+        .border-primary { border-color: var(--color-primary); }
+        .bg-card-light { background-color: var(--color-bg-light); }
+        
+        .font-serif { font-family: 'Playfair Display', serif; }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <!-- App Container -->
+    <div id="app" class="max-w-md mx-auto min-h-screen relative">
+        <!-- Content injected by JavaScript -->
+    </div>
+
+    <!-- Bottom Navigation (Fixed) -->
+    <div id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-[#001f17] border-t border-[#FFC857]/10 pb-4 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] hidden">
+        <div class="grid grid-cols-4 h-16 max-w-md mx-auto">
+            <button onclick="navigate('home')" class="nav-btn flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors" data-target="home">
+                <div class="relative px-5 py-1 rounded-full mb-1 transition-all">
+                    <i data-lucide="home" class="w-6 h-6"></i>
+                </div>
+                <span class="text-[10px] font-medium">Home</span>
+            </button>
+            
+            <button onclick="navigate('shop')" class="nav-btn flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors" data-target="shop">
+                <div class="relative px-5 py-1 rounded-full mb-1 transition-all">
+                    <i data-lucide="gift" class="w-6 h-6"></i>
+                </div>
+                <span class="text-[10px] font-medium">Shop</span>
+            </button>
+            
+            <button onclick="navigate('cart')" class="nav-btn flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors" data-target="cart">
+                <div class="relative px-5 py-1 rounded-full mb-1 transition-all">
+                    <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+                    <span id="nav-cart-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full border-2 border-[#001f17]">0</span>
+                </div>
+                <span class="text-[10px] font-medium">Cart</span>
+            </button>
+
+            <button onclick="navigate('profile')" class="nav-btn flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors" data-target="profile">
+                <div class="relative px-5 py-1 rounded-full mb-1 transition-all">
+                    <i data-lucide="user" class="w-6 h-6"></i>
+                </div>
+                <span class="text-[10px] font-medium">Profile</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- Data & State ---
+        const PRODUCTS = [
+            { id: 101, category: 'chocolate', title: 'Royal Gold Truffles', price: 1299, image: 'https://images.unsplash.com/photo-1548907040-4baa42d10919?auto=format&fit=crop&q=80&w=800', description: 'Rich dark chocolate dusted with edible 24k gold leaf.', customizable: true },
+            { id: 102, category: 'chocolate', title: 'Custom Name Bar', price: 499, image: 'https://images.unsplash.com/photo-1621939514649-28b5fe2a88dc?auto=format&fit=crop&q=80&w=800', description: 'Premium milk chocolate bar with your name elegantly engraved.', customizable: true },
+            { id: 103, category: 'chocolate', title: 'Ruby Berry Heart', price: 850, image: 'https://images.unsplash.com/photo-1575372579294-f203874313df?auto=format&fit=crop&q=80&w=800', description: 'Rare ruby chocolate with a raspberry ganache center.', customizable: true },
+            { id: 104, category: 'chocolate', title: 'Hazelnut Praline', price: 1150, image: 'https://images.unsplash.com/photo-1526081347589-7fa3cbcd1f90?auto=format&fit=crop&q=80&w=800', description: 'Crunchy hazelnuts covered in smooth Swiss chocolate.', customizable: true },
+            { id: 201, category: 'cards', title: 'Vintage Floral Card', price: 199, image: 'https://images.unsplash.com/photo-1606509779092-2e6cd283626e?auto=format&fit=crop&q=80&w=800', description: 'Handmade paper with real dried pressed flowers.', customizable: false },
+            { id: 202, category: 'cards', title: 'Pop-up Birthday', price: 299, image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800', description: '3D intricate pop-up cake design.', customizable: true },
+            { id: 203, category: 'cards', title: 'Golden Anniversary', price: 249, image: 'https://images.unsplash.com/photo-1594815467265-517b6a7a0b86?auto=format&fit=crop&q=80&w=800', description: 'Elegant gold foil lettering on black matte cardstock.', customizable: true },
+            { id: 301, category: 'gifts', title: 'Velvet Gift Box', price: 2499, image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=800', description: 'Premium curated gift box with assorted treats.', customizable: false },
+            { id: 302, category: 'gifts', title: 'Teddy & Roses', price: 1599, image: 'https://images.unsplash.com/photo-1582650042468-b3d4f8d5d90f?auto=format&fit=crop&q=80&w=800', description: 'Cute plush teddy bear paired with a bouquet of red roses.', customizable: false },
+            { id: 303, category: 'gifts', title: 'Scented Candle Set', price: 1299, image: 'https://images.unsplash.com/photo-1602873155160-b6f707f45a7d?auto=format&fit=crop&q=80&w=800', description: 'Relaxing lavender and vanilla scented soy candles.', customizable: false },
+        ];
+
+        let state = {
+            view: 'home',
+            user: JSON.parse(localStorage.getItem('smartChoiceUser')) || null,
+            cart: JSON.parse(localStorage.getItem('smartChoiceCart')) || [],
+            wishlist: JSON.parse(localStorage.getItem('smartChoiceWishlist')) || [],
+            orders: JSON.parse(localStorage.getItem('smartChoiceOrders')) || [],
+            searchQuery: '',
+            activeCategory: 'All',
+            selectedProduct: null,
+            authTab: 'login' // or 'signup'
+        };
+
+        // --- Core Functions ---
+
+        function render() {
+            const app = document.getElementById('app');
+            const bottomNav = document.getElementById('bottom-nav');
+            
+            // Show/Hide Bottom Nav
+            if (state.view === 'auth') {
+                bottomNav.classList.add('hidden');
+            } else {
+                bottomNav.classList.remove('hidden');
+                updateNavStyles();
+            }
+
+            // Route views
+            switch(state.view) {
+                case 'auth': app.innerHTML = renderAuthView(); break;
+                case 'home': app.innerHTML = renderHomeView(); break;
+                case 'shop': app.innerHTML = renderShopView(); break;
+                case 'cart': app.innerHTML = renderCartView(); break;
+                case 'profile': app.innerHTML = renderProfileView(); break;
+                case 'favorites': app.innerHTML = renderFavoritesView(); break;
+                case 'orders': app.innerHTML = renderOrdersView(); break;
+            }
+
+            // If a product is selected, overlay the modal
+            if (state.selectedProduct) {
+                const modal = document.createElement('div');
+                modal.innerHTML = renderProductModal();
+                app.appendChild(modal);
+            }
+
+            // Re-initialize icons
+            lucide.createIcons();
+        }
+
+        function updateNavStyles() {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const isActive = btn.dataset.target === state.view;
+                const iconContainer = btn.querySelector('div');
+                const text = btn.querySelector('span:not(#nav-cart-badge)');
+                
+                if (isActive) {
+                    btn.classList.remove('text-gray-400');
+                    btn.classList.add('text-primary');
+                    iconContainer.classList.add('bg-[#FFC857]/10');
+                    text.classList.add('font-bold');
+                } else {
+                    btn.classList.add('text-gray-400');
+                    btn.classList.remove('text-primary');
+                    iconContainer.classList.remove('bg-[#FFC857]/10');
+                    text.classList.remove('font-bold');
+                }
+            });
+
+            // Update Cart Badge
+            const badge = document.getElementById('nav-cart-badge');
+            if (state.cart.length > 0) {
+                badge.textContent = state.cart.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function navigate(view) {
+            // Strict Auth Check for Protected Routes (Removed general protection, strictly for actions now)
+            // But user said: "Strict Authentication: I completely removed the 'Guest' option. Users must log in or sign up to access the app's features."
+            // THEN said "undo it... let it be they can view direct home and all but make like they cant added to cart unless they login"
+            // SO: View navigation is open, but 'cart' and 'profile' might need login?
+            // "if they click on cart or profile then it should appear login/signup"
+            
+            if ((view === 'cart' || view === 'profile' || view === 'favorites' || view === 'orders') && !state.user) {
+                state.view = 'auth';
+                // alert("Please login to access this feature."); // Removed alert to be smoother, just show login
+                render();
+                return;
+            }
+            
+            state.view = view;
+            
+            // Reset filters if navigating away from shop? (Optional, kept persistent for now)
+            render();
+            window.scrollTo(0,0);
+        }
+
+        // --- Actions ---
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const storedUsers = JSON.parse(localStorage.getItem('smartChoiceUsers') || '[]');
+            const foundUser = storedUsers.find(u => u.email === email && u.password === password);
+
+            if (foundUser) {
+                state.user = foundUser;
+                localStorage.setItem('smartChoiceUser', JSON.stringify(foundUser));
+                navigate('home');
+            } else {
+                alert("Invalid credentials!");
+            }
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!name || !email || !password) return alert("All fields required");
+
+            const storedUsers = JSON.parse(localStorage.getItem('smartChoiceUsers') || '[]');
+            if (storedUsers.some(u => u.email === email)) return alert("Email already exists");
+
+            const newUser = { name, email, password };
+            storedUsers.push(newUser);
+            localStorage.setItem('smartChoiceUsers', JSON.stringify(storedUsers));
+            
+            state.user = newUser;
+            localStorage.setItem('smartChoiceUser', JSON.stringify(newUser));
+            navigate('home');
+        }
+
+        function handleGuest() {
+            // Guest mode: View is home, but user remains NULL
+            state.user = null; 
+            navigate('home');
+        }
+
+        function handleLogout() {
+            state.user = null;
+            state.cart = [];
+            localStorage.removeItem('smartChoiceUser');
+            localStorage.removeItem('smartChoiceCart');
+            state.view = 'auth';
+            render();
+        }
+
+        function addToCart(productId, flavor, text) {
+            // STRICT AUTH CHECK FOR ADD TO CART
+            if (!state.user) {
+                state.selectedProduct = null; // Close modal
+                state.view = 'auth';
+                // User said "cant able to add to cart without login... login and signup logic should work perfectly"
+                alert("Please login to add items to your cart.");
+                render();
+                return;
+            }
+
+            const product = PRODUCTS.find(p => p.id === productId);
+            const newItem = {
+                ...product,
+                cartId: Date.now(),
+                customization: { flavor: flavor || 'Classic', text: text || '' }
+            };
+            
+            state.cart.push(newItem);
+            localStorage.setItem('smartChoiceCart', JSON.stringify(state.cart));
+            
+            state.selectedProduct = null; // Close modal
+            alert("Added to Cart!");
+            render();
+        }
+
+        function removeFromCart(cartId) {
+            state.cart = state.cart.filter(item => item.cartId !== cartId);
+            localStorage.setItem('smartChoiceCart', JSON.stringify(state.cart));
+            render();
+        }
+
+        function toggleWishlist(e, productId) {
+            e.stopPropagation();
+            
+            if (!state.user) {
+                alert("Please login to save favorites.");
+                state.view = 'auth';
+                render();
+                return;
+            }
+
+            const product = PRODUCTS.find(p => p.id === productId);
+            const exists = state.wishlist.find(p => p.id === productId);
+            
+            if (exists) {
+                state.wishlist = state.wishlist.filter(p => p.id !== productId);
+            } else {
+                state.wishlist.push(product);
+            }
+            localStorage.setItem('smartChoiceWishlist', JSON.stringify(state.wishlist));
+            render();
+        }
+
+        function openProduct(productId) {
+            state.selectedProduct = PRODUCTS.find(p => p.id === productId);
+            render();
+        }
+
+        function closeProduct() {
+            state.selectedProduct = null;
+            render();
+        }
+
+        function setCategory(cat) {
+            state.activeCategory = cat;
+            state.view = 'shop';
+            render();
+        }
+
+        function handleSearch(e) {
+            state.searchQuery = e.target.value;
+            state.view = 'shop';
+            render();
+            // Refocus search input
+            const input = document.getElementById('search-input');
+            if(input) {
+                input.focus(); 
+                input.setSelectionRange(input.value.length, input.value.length);
+            }
+        }
+
+        function toggleAuthTab(tab) {
+            state.authTab = tab;
+            render();
+        }
+
+        function checkoutWhatsApp() {
+            const phone = document.getElementById('checkout-phone').value;
+            const address = document.getElementById('checkout-address').value;
+            const pincode = document.getElementById('checkout-pincode').value;
+
+            if(!phone || !address || !pincode) return alert("Please fill all delivery details");
+
+            // Save Order to History
+            const total = state.cart.reduce((sum, item) => sum + item.price, 0);
+            const newOrder = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                items: [...state.cart],
+                total: total,
+                status: 'Order Sent to WhatsApp'
+            };
+            
+            state.orders.unshift(newOrder);
+            localStorage.setItem('smartChoiceOrders', JSON.stringify(state.orders));
+
+            // Construct WhatsApp Message
+            let msg = `*New Order from Smart Choice App* 🛍️\n\n`;
+            msg += `*Customer:* ${state.user.name}\n`;
+            msg += `*Phone:* ${phone}\n*Address:* ${address}, ${pincode}\n\n`;
+            msg += `*Order Details:*\n`;
+            
+            state.cart.forEach((item, i) => {
+                msg += `${i+1}. ${item.title} - ₹${item.price}\n`;
+                if(item.customization && (item.customization.text || item.customization.flavor)) {
+                    msg += `   (${item.customization.flavor}${item.customization.text ? ', "' + item.customization.text + '"' : ''})\n`;
+                }
+            });
+            msg += `\n*Total:* ₹${total}`;
+
+            // Clear Cart
+            state.cart = [];
+            localStorage.setItem('smartChoiceCart', JSON.stringify([]));
+            render();
+
+            // Redirect
+            window.open(`https://wa.me/918884397315?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // --- Views (HTML Generators) ---
+
+        function renderAuthView() {
+            const isLogin = state.authTab === 'login';
+            return `
+                <div class="flex flex-col items-center justify-center min-h-screen px-6 py-10 animate-fade-in">
+                    <div class="text-center mb-10">
+                        <h1 class="text-4xl font-black text-primary tracking-tight font-serif mb-2 text-[#FFC857]">SMART CHOICE</h1>
+                        <p class="text-gray-300 text-sm">Premium Chocolates & Gifts</p>
+                    </div>
+                    <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-2">
+                        <div class="flex p-2 bg-gray-100 rounded-3xl mb-6 mx-4 mt-6">
+                            <button onclick="toggleAuthTab('login')" class="flex-1 py-3 text-sm font-bold rounded-2xl transition-all ${isLogin ? 'bg-white text-[#003B2B] shadow-md' : 'text-gray-400'}">Login</button>
+                            <button onclick="toggleAuthTab('signup')" class="flex-1 py-3 text-sm font-bold rounded-2xl transition-all ${!isLogin ? 'bg-white text-[#003B2B] shadow-md' : 'text-gray-400'}">Sign Up</button>
+                        </div>
+                        <form onsubmit="${isLogin ? 'handleLogin(event)' : 'handleSignup(event)'}" class="px-6 pb-8">
+                            ${!isLogin ? `
+                                <div class="mb-4">
+                                    <label class="block text-xs font-bold text-[#003B2B] uppercase mb-1">Full Name</label>
+                                    <input id="name" type="text" placeholder="John Doe" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:border-[#003B2B] focus:outline-none text-gray-900" required>
+                                </div>
+                            ` : ''}
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-[#003B2B] uppercase mb-1">Email</label>
+                                <input id="email" type="email" placeholder="you@example.com" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:border-[#003B2B] focus:outline-none text-gray-900" required>
+                            </div>
+                            <div class="mb-6">
+                                <label class="block text-xs font-bold text-[#003B2B] uppercase mb-1">Password</label>
+                                <input id="password" type="password" placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:border-[#003B2B] focus:outline-none text-gray-900" required>
+                            </div>
+                            <button type="submit" class="w-full bg-[#003B2B] text-white py-4 rounded-xl font-bold shadow-lg hover:bg-opacity-90 transition-transform active:scale-95">
+                                ${isLogin ? 'Access Account' : 'Create Account'}
+                            </button>
+                        </form>
+                        <div class="text-center pb-6">
+                            <button onclick="handleGuest()" class="text-sm text-gray-400 hover:text-[#003B2B] font-medium">Skip & Continue as Guest</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTopBar() {
+            const hasFavorites = state.wishlist.length > 0;
+            return `
+                <div class="sticky top-0 z-40 bg-[#003B2B]/95 backdrop-blur-md px-4 py-4 flex justify-between items-center border-b border-[#FFC857]/10">
+                    <div class="flex items-center gap-2">
+                        <div class="bg-primary p-1.5 rounded-lg">
+                            <i data-lucide="gift" class="text-[#003B2B] w-5 h-5"></i>
+                        </div>
+                        <h1 class="text-xl font-extrabold tracking-tight text-primary font-serif">Smart Choice</h1>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="navigate('favorites')" class="relative p-2">
+                            <i data-lucide="heart" class="w-6 h-6 ${hasFavorites ? 'text-[#FFC857] fill-[#FFC857]' : 'text-[#FFC857]'}"></i>
+                            ${hasFavorites ? '<span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>' : ''}
+                        </button>
+                        <div class="relative">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 text-primary w-4 h-4"></i>
+                            <input id="search-input" type="text" value="${state.searchQuery}" oninput="handleSearch(event)" placeholder="Search..." class="bg-[#004D3A] text-white pl-9 pr-4 py-2 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-[#FFC857] w-32 focus:w-40 transition-all placeholder-gray-400">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderProductCard(product) {
+            const isFav = state.wishlist.some(p => p.id === product.id);
+            return `
+                <div onclick="openProduct(${product.id})" class="bg-card-light rounded-2xl overflow-hidden shadow-lg border border-[#FFC857]/10 active:scale-95 transition-transform relative group">
+                    <div class="h-40 overflow-hidden relative">
+                        <img src="${product.image}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <button onclick="toggleWishlist(event, ${product.id})" class="absolute top-2 right-2 bg-white/20 backdrop-blur-md p-2 rounded-full z-10">
+                            <i data-lucide="heart" class="w-4 h-4 ${isFav ? 'text-[#C1292E] fill-[#C1292E]' : 'text-white'}"></i>
+                        </button>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="text-white font-bold text-xs truncate">${product.title}</h3>
+                        <p class="text-primary font-bold text-sm mt-1">₹${product.price}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderHomeView() {
+            const featured = PRODUCTS.filter(p => [101, 202, 301, 103].includes(p.id));
+            return `
+                ${renderTopBar()}
+                <div class="pb-24 px-4 animate-fade-in">
+                    <!-- Hero -->
+                    <div class="relative h-64 mt-4 rounded-[2rem] overflow-hidden shadow-2xl border border-[#FFC857]/20 mb-8">
+                        <img src="https://images.unsplash.com/photo-1606312619070-d48b4c652a52?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-cover opacity-70">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#003B2B] via-[#003B2B]/40 to-transparent"></div>
+                        <div class="absolute bottom-6 left-6 right-6">
+                            <span class="bg-primary text-[#003B2B] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-2 inline-block">Premium</span>
+                            <h2 class="text-3xl font-black text-white leading-tight mb-2 font-serif">The Royal Taste</h2>
+                            <button onclick="navigate('shop')" class="bg-primary text-[#003B2B] font-bold px-6 py-3 rounded-xl flex items-center gap-2 mt-4 text-sm shadow-lg">
+                                Explore Shop <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Categories -->
+                    <div class="flex gap-3 overflow-x-auto no-scrollbar mb-8">
+                        ${['All', 'Chocolates', 'Cards', 'Gifts'].map(cat => `
+                            <button onclick="setCategory('${cat === 'All' ? 'All' : (cat === 'Chocolates' ? 'chocolate' : cat.toLowerCase())}')" class="px-6 py-2.5 rounded-full whitespace-nowrap text-sm font-medium transition-all bg-[#004D3A] text-white border border-[#FFC857]/20">
+                                ${cat}
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Trending -->
+                    <div class="mb-4">
+                        <h2 class="text-2xl font-bold text-primary mb-1">Trending Now</h2>
+                        <p class="text-sm text-gray-300">Most loved by our customers</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        ${featured.map(p => renderProductCard(p)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderShopView() {
+            // Filter logic
+            let items = PRODUCTS;
+            if(state.activeCategory !== 'All') {
+                items = items.filter(p => p.category === state.activeCategory);
+            }
+            if(state.searchQuery) {
+                const q = state.searchQuery.toLowerCase();
+                items = items.filter(p => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
+            }
+
+            return `
+                ${renderTopBar()}
+                <div class="pb-24 pt-4 px-4 animate-fade-in">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-primary mb-1">${state.searchQuery ? 'Search Results' : 'Exclusive Collection'}</h2>
+                        <p class="text-sm text-gray-300 mb-4">${items.length} products found</p>
+                        <div class="flex gap-2 flex-wrap">
+                            ${['All', 'chocolate', 'cards', 'gifts'].map(cat => {
+                                const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+                                const isActive = state.activeCategory === cat;
+                                return `<button onclick="setCategory('${cat}')" class="text-xs px-4 py-2 rounded-full border ${isActive ? 'bg-primary text-[#003B2B] border-primary font-bold' : 'text-gray-400 border-gray-600'}">${label}</button>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        ${items.length > 0 ? items.map(p => renderProductCard(p)).join('') : `
+                            <div class="col-span-2 text-center py-10 opacity-50">
+                                <i data-lucide="search" class="w-12 h-12 mx-auto text-primary mb-2"></i>
+                                <p>No products found.</p>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCartView() {
+            const total = state.cart.reduce((sum, item) => sum + item.price, 0);
+            
+            if(state.cart.length === 0) {
+                return `
+                    ${renderTopBar()}
+                    <div class="flex flex-col items-center justify-center min-h-[60vh] px-4 animate-fade-in">
+                        <div class="relative mb-8 animate-float">
+                            <div class="w-32 h-32 bg-[#FFC857]/10 rounded-full flex items-center justify-center border-2 border-[#FFC857]/30">
+                                <i data-lucide="shopping-bag" class="w-16 h-16 text-primary"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Your Cart is Empty</h3>
+                        <p class="text-gray-400 text-center mb-8">Discover our premium collection.</p>
+                        <button onclick="navigate('shop')" class="bg-primary text-[#003B2B] font-bold px-8 py-3 rounded-xl animate-pulse">Browse Collection</button>
+                    </div>
+                `;
+            }
+
+            return `
+                ${renderTopBar()}
+                <div class="pb-24 pt-4 px-4 animate-fade-in">
+                    <h2 class="text-2xl font-bold text-primary mb-6">Shopping Cart (${state.cart.length})</h2>
+                    <div class="space-y-4 mb-8">
+                        ${state.cart.map(item => `
+                            <div class="bg-card-light p-4 rounded-2xl flex items-center justify-between border border-[#FFC857]/10 relative">
+                                <div class="flex items-center gap-4">
+                                    <img src="${item.image}" class="w-16 h-16 rounded-xl object-cover">
+                                    <div>
+                                        <h4 class="text-white font-bold text-sm">${item.title}</h4>
+                                        <p class="text-primary font-bold text-sm">₹${item.price}</p>
+                                        ${item.customization ? `<p class="text-[10px] text-gray-400 mt-1">${item.customization.flavor}</p>` : ''}
+                                    </div>
+                                </div>
+                                <button onclick="removeFromCart(${item.cartId})" class="bg-red-500/10 text-red-500 p-2 rounded-full hover:bg-red-500 hover:text-white">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="bg-card-light p-5 rounded-2xl border border-[#FFC857]/20 mb-6">
+                        <h3 class="text-white font-bold mb-4 flex items-center gap-2"><i data-lucide="truck" class="text-primary w-4 h-4"></i> Delivery Details</h3>
+                        <div class="space-y-3">
+                            <input type="text" value="${state.user.name}" readonly class="w-full px-4 py-3 rounded-xl bg-[#003B2B] text-gray-400 text-sm border border-[#FFC857]/30">
+                            <input id="checkout-phone" type="tel" placeholder="Phone Number" class="w-full px-4 py-3 rounded-xl bg-[#003B2B] text-white text-sm border border-[#FFC857]/30 focus:border-primary focus:outline-none">
+                            <input id="checkout-address" type="text" placeholder="Address" class="w-full px-4 py-3 rounded-xl bg-[#003B2B] text-white text-sm border border-[#FFC857]/30 focus:border-primary focus:outline-none">
+                            <input id="checkout-pincode" type="number" placeholder="Pincode" class="w-full px-4 py-3 rounded-xl bg-[#003B2B] text-white text-sm border border-[#FFC857]/30 focus:border-primary focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="border-t border-[#FFC857]/20 pt-4">
+                        <div class="flex justify-between text-white text-xl font-bold mb-6">
+                            <span>Total</span>
+                            <span class="text-primary">₹${total}</span>
+                        </div>
+                        <button onclick="checkoutWhatsApp()" class="w-full bg-[#25D366] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg">
+                            <i data-lucide="send" class="w-5 h-5"></i> Order on WhatsApp
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFavoritesView() {
+            return `
+                ${renderTopBar()}
+                <div class="pb-24 pt-4 px-4 animate-fade-in">
+                    <h2 class="text-2xl font-bold text-primary mb-1">Your Favorites</h2>
+                    <p class="text-sm text-gray-300 mb-6">${state.wishlist.length} loved items</p>
+                    
+                    ${state.wishlist.length === 0 ? `
+                        <div class="text-center py-20 opacity-50">
+                            <i data-lucide="heart" class="w-16 h-16 mx-auto text-primary mb-4"></i>
+                            <p class="text-white">No favorites yet.</p>
+                        </div>
+                    ` : `
+                        <div class="grid grid-cols-2 gap-4">
+                            ${state.wishlist.map(p => renderProductCard(p)).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function renderOrdersView() {
+            return `
+                ${renderTopBar()}
+                <div class="pb-24 pt-4 px-4 animate-fade-in">
+                    <h2 class="text-2xl font-bold text-primary mb-1">My Orders</h2>
+                    <p class="text-sm text-gray-300 mb-6">${state.orders.length} past orders</p>
+                    
+                    ${state.orders.length === 0 ? `
+                        <div class="text-center py-20 opacity-50">
+                            <i data-lucide="shopping-bag" class="w-16 h-16 mx-auto text-primary mb-4"></i>
+                            <p class="text-white">No orders yet.</p>
+                        </div>
+                    ` : `
+                        <div class="space-y-4">
+                            ${state.orders.map(order => `
+                                <div class="bg-card-light p-4 rounded-xl border border-[#FFC857]/10">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <span class="text-xs text-gray-400">Order #${order.id.toString().slice(-6)}</span>
+                                            <div class="text-sm text-white font-bold">${order.date}</div>
+                                        </div>
+                                        <span class="text-primary font-bold">₹${order.total}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-400 mb-2 border-t border-white/10 pt-2 mt-2">
+                                        ${order.items.map(i => i.title).join(', ')}
+                                    </div>
+                                    <div class="text-xs text-green-400 flex items-center gap-1">
+                                        <i data-lucide="check-circle" class="w-3 h-3"></i> ${order.status}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function renderProfileView() {
+            return `
+                <div class="pb-24 pt-10 px-4 animate-fade-in">
+                    <div class="flex flex-col items-center mb-10">
+                        <div class="w-24 h-24 rounded-full bg-gradient-to-br from-[#FFC857] to-[#B8860B] flex items-center justify-center text-[#003B2B] text-4xl font-bold shadow-xl mb-4 border-4 border-[#003B2B]">
+                            ${state.user.name.charAt(0)}
+                        </div>
+                        <h2 class="text-2xl text-white font-bold">${state.user.name}</h2>
+                        <p class="text-primary opacity-80">${state.user.email}</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div onclick="navigate('favorites')" class="bg-card-light p-4 rounded-xl flex items-center justify-between cursor-pointer">
+                            <div class="flex items-center gap-3 text-white">
+                                <i data-lucide="heart" class="text-primary w-5 h-5"></i>
+                                <span>My Favorites</span>
+                            </div>
+                            <i data-lucide="chevron-right" class="text-gray-500 w-4 h-4"></i>
+                        </div>
+                        <div onclick="navigate('orders')" class="bg-card-light p-4 rounded-xl flex items-center justify-between cursor-pointer">
+                            <div class="flex items-center gap-3 text-white">
+                                <i data-lucide="shopping-bag" class="text-primary w-5 h-5"></i>
+                                <span>My Orders</span>
+                            </div>
+                            <i data-lucide="chevron-right" class="text-gray-500 w-4 h-4"></i>
+                        </div>
+                        
+                        <button onclick="handleLogout()" class="w-full mt-8 p-4 rounded-xl border border-red-500/30 text-red-400 flex items-center justify-center gap-2 font-semibold hover:bg-red-500 hover:text-white transition-all">
+                            <i data-lucide="log-out" class="w-5 h-5"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderProductModal() {
+            const p = state.selectedProduct;
+            const isFav = state.wishlist.some(w => w.id === p.id);
+            return `
+                <div class="fixed inset-0 z-[60] flex items-end justify-center">
+                    <div onclick="closeProduct()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                    <div class="bg-[#003B2B] w-full max-w-md rounded-t-[2.5rem] p-6 border-t border-[#FFC857]/30 relative max-h-[90vh] overflow-y-auto animate-slide-up shadow-2xl">
+                        <div class="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mb-6 opacity-50"></div>
+                        
+                        <div class="relative mb-6">
+                            <img src="${p.image}" class="w-full h-64 object-cover rounded-3xl shadow-2xl">
+                            <button onclick="closeProduct()" class="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-full text-white">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                            </button>
+                            <button onclick="toggleWishlist(event, ${p.id}); render()" class="absolute bottom-4 right-4 bg-white/20 backdrop-blur-md p-3 rounded-full shadow-lg">
+                                <i data-lucide="heart" class="w-5 h-5 ${isFav ? 'text-[#C1292E] fill-[#C1292E]' : 'text-white'}"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex justify-between items-start mb-2">
+                            <h2 class="text-3xl font-bold text-white font-serif">${p.title}</h2>
+                            <span class="text-2xl font-bold text-primary">₹${p.price}</span>
+                        </div>
+                        <p class="text-gray-300 mb-8 leading-relaxed">${p.description}</p>
+
+                        <!-- Customization Block Always Visible -->
+                        <div class="bg-card-light p-5 rounded-2xl mb-8 border border-[#FFC857]/20">
+                            <h3 class="font-bold text-primary mb-4 flex items-center gap-2 text-sm uppercase tracking-wider">
+                                <i data-lucide="star" class="w-4 h-4"></i> Personalize Your Gift
+                            </h3>
+                            <label class="text-xs text-gray-400 mb-2 block font-bold">OPTION / FLAVOR</label>
+                            <select id="custom-flavor" class="w-full bg-[#003B2B] text-white p-3 rounded-lg border border-[#FFC857]/30 mb-4 focus:outline-none">
+                                <option>Classic / Standard</option>
+                                <option>Dark Chocolate</option>
+                                <option>White Vanilla</option>
+                                <option>Premium Gift Wrap</option>
+                            </select>
+                            <input id="custom-text" type="text" placeholder="Custom Message (Optional)..." class="w-full bg-[#003B2B] text-white p-3 rounded-lg border border-[#FFC857]/30 focus:outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="
+                                const flavor = document.getElementById('custom-flavor')?.value;
+                                const text = document.getElementById('custom-text')?.value;
+                                addToCart(${p.id}, flavor, text);
+                            " class="border-2 border-[#FFC857] text-primary hover:bg-primary hover:text-[#003B2B] py-3 rounded-xl font-bold transition-all">
+                                Add to Cart
+                            </button>
+                            <button onclick="
+                                const flavor = document.getElementById('custom-flavor')?.value;
+                                const text = document.getElementById('custom-text')?.value;
+                                addToCart(${p.id}, flavor, text);
+                                if(state.user) navigate('cart');
+                            " class="bg-primary text-[#003B2B] py-3 rounded-xl font-bold shadow-lg hover:shadow-[0_0_15px_rgba(255,200,87,0.4)] transition-all">
+                                Buy Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Init ---
+        render();
+
+    </script>
+</body>
+</html>
